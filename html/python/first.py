@@ -36,34 +36,37 @@ def find_people(records):
 find_people = decorator(find_people)
 
 class Person:
+    def scrape(self):
+        page = requests.get(f"https://www.facebook.com/{self.name}")
+        soup = BeautifulSoup(page.content, 'html.parser')
+        self.city = soup.find('span', class_='_2iel _50f7').get_text() 
+        self.work = []
+        for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
+            work.append(tags.find('a').contents[0], end=", ")
+     
+
     def __init__(self, name, **kwargs):
         self.name = name
-        self.work = kwargs['work']
+        
         self.city = kwargs.get('city', "Roorkee")
     def show(self):
-
         print(f"My name is {self.name} and my current city is {self.city}")
-
-hello = Person('Bismita')
-
-def scrape(username):
-    page = requests.get(f"https://www.facebook.com/{username}")
-    soup = BeautifulSoup(page.content, 'html.parser')
-    print("Current City:", end=" "),
-    print(soup.find('span', class_='_2iel _50f7').get_text())
-    print("Work:")
-    print("[", end=" ")
-    for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
-        print(tags.find('a').contents[0], end=", ")
-    print("]")
-    print(end="\n")
-    print("Favourites:")
-    for tags in soup.find_all('tbody'):
-        print(tags.find('th').get_text(), end=": ")
-        print(tags.find('td').get_text())
+        print("Current City:", end=" ")
+        print(self.city)
+        print(soup.find('span', class_='_2iel _50f7').get_text())
+        print("Work:")
+        print("[", end=" ")
+        for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
+            print(tags.find('a').contents[0], end=", ")
+        print("]")
+        print(end="\n")
+        print("Favourites:")
+        for tags in soup.find_all('tbody'):
+            print(tags.find('th').get_text(), end=": ")
+            print(tags.find('td').get_text())
         
 
 name = input("Enter username: ")
-scrape(name)
-
-    
+hello = Person('biscuit.2510')
+hello.show()
+hello.scrape()    
