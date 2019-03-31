@@ -36,24 +36,23 @@ def find_people(records):
 find_people = decorator(find_people)
 
 class Person:
-    def scrape(self):
+    def scrape(self, **kwargs):
         page = requests.get(f"https://www.facebook.com/{self.name}")
         soup = BeautifulSoup(page.content, 'html.parser')
         self.city = soup.find('span', class_='_2iel _50f7').get_text() 
-        self.work = []
-        for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
-            work.append(tags.find('a').contents[0], end=", ")
-     
+        return True
+           
 
     def __init__(self, name, **kwargs):
         self.name = name
         
         self.city = kwargs.get('city', "Roorkee")
     def show(self):
+        page = requests.get(f"https://www.facebook.com/{self.name}")
+        soup = BeautifulSoup(page.content, 'html.parser')
         print(f"My name is {self.name} and my current city is {self.city}")
         print("Current City:", end=" ")
         print(self.city)
-        print(soup.find('span', class_='_2iel _50f7').get_text())
         print("Work:")
         print("[", end=" ")
         for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
@@ -62,11 +61,14 @@ class Person:
         print(end="\n")
         print("Favourites:")
         for tags in soup.find_all('tbody'):
-            print(tags.find('th').get_text(), end=": ")
-            print(tags.find('td').get_text())
+                print(tags.find('th').get_text(), end=": ")
+                print(tags.find('td').get_text())
+        
+        if tags:
+            print("no fav")    
         
 
 name = input("Enter username: ")
-hello = Person('biscuit.2510')
+hello = Person(name)
 hello.show()
 hello.scrape()    
