@@ -3,9 +3,10 @@ from mysql.connector import Error
 import requests
 import urllib3
 from bs4 import BeautifulSoup
+from Exception import DataException
 
 def decorator(func):
-    def inner():
+    def inner(x):
         try:
             mySQLconnection = mysql.connector.connect(host='localhost',
                                                     database='main',
@@ -15,60 +16,87 @@ def decorator(func):
             cursor = mySQLconnection.cursor()
             cursor.execute(query)
             records = cursor.fetchall()
-            func(records)
+            check= False
+            for row in records:
+                if x == row[0]:
+                    check = True
+            if check:
+                print(x,' exists')
+                returned_value = func(x)
+            else:
+                raise Exception('does not exist')
             cursor.close()
-
+            return returned_value
+        
         except Error as e:
-            print("error in conn", e)
-    return inner
+            print("Error while conn to mysql", e)
+    return inner        
 
-def find_people(records):
-    x = input("name of person to search- ")
-    check= False
-    for row in records:
-        if x == row[0]:
-            check = True
-    if check:
-        print(x,'exists')
+def scrape(name):
+    URL = f"https://en-gb.facebook.com/{name}"
+    for person in person_scrapped:
+        if person.username == name:
+            return person.show_values()
+    try:        
+        page = requests.get(URL)
+
+    except: 
+        print("user doesn't exist")
+
+    soup = BeautifulSoup(page.content, 'html.parser')
+    Name = soup.find('a', class_='_2nlw _2nlv').get_text()
+    City = soup.find('span', class_='_2iel _50f7').get_text()
+    print("Current City: ", end=' ')
+    print(City) 
+    Work = []
+
+    try:
+        for tags in soup.find(attrs={'class':'_4qm1'}).findAll(attrs={'class': '_2lzr _50f5 _50f7'}):
+            Work.append(tags.find('a').contents[0])
+    except:
+        print("Work does not exist")
+    categories = {}
+    print("Work: ")
+    print(Work)
+
+    try:
+        for rows in soup.find(attrs={'class': 'mtm _5e7- profileInfoTable _3stp _3stn'}).findAll('tbody'):
+            if rows.find(attrs={'class': 'labelContainer'}).contents[0] != 'Other':
+                categories.update({rows.find(attrs={'class':'labelContainer'}).contents[0]: rows.find(attrs={'class':'mediaPageName'}).contents[0]})
+    except:
+        pass
+    
+    if len(categories) == 0:
+        print('Favourites does not exist')
     else:
-        print('does not exist')
+        print('Favourites: ', end=' ')
+        print(categories)
+    person = Person(name, Name, Work, City)
+    person_scrapped.append(person)
+    return "Bismita"
 
-find_people = decorator(find_people)
 
 class Person:
-    def scrape(self, **kwargs):
-        page = requests.get(f"https://www.facebook.com/{self.name}")
-        soup = BeautifulSoup(page.content, 'html.parser')
-        self.city = soup.find('span', class_='_2iel _50f7').get_text() 
-        return True
-           
-
-    def __init__(self, name, **kwargs):
+    def __init__(self, username=None, name=None, work=[], city='Roorkee'):
+        if username != None:
+            self.username = username
         self.name = name
-        
-        self.city = kwargs.get('city', "Roorkee")
-    def show(self):
-        page = requests.get(f"https://www.facebook.com/{self.name}")
-        soup = BeautifulSoup(page.content, 'html.parser')
-        print(f"My name is {self.name} and my current city is {self.city}")
-        print("Current City:", end=" ")
-        print(self.city)
-        print("Work:")
-        print("[", end=" ")
-        for tags in soup.find_all('div', class_='_2lzr _50f5 _50f7'):
-            print(tags.find('a').contents[0], end=", ")
-        print("]")
-        print(end="\n")
-        print("Favourites:")
-        for tags in soup.find_all('tbody'):
-                print(tags.find('th').get_text(), end=": ")
-                print(tags.find('td').get_text())
-        
-        if tags:
-            print("no fav")    
-        
+        if work != []:
+            self.work = work
+        self.city = city
+    
+    def show_values(self):
+        self.message =  f"My name is {self.name} and my current city is {self.work}"
+        print(self.message)
+        return self.message
 
-name = input("Enter username: ")
-hello = Person(name)
-hello.show()
-hello.scrape()    
+global person_scrapped
+person_scrapped = []
+
+if __name__ == '__main__':
+    while True:
+        x = input("Find users ")
+        scrape(x)
+        
+        
+    
