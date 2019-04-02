@@ -21,14 +21,6 @@ class TestScrape(unittest.TestCase):
         
         global Error
         Error = Person()
-        
-        def test_work_null(self):
-                with self.assertRaises(Exception):
-                Error.work
-        
-        def test_username_null(self):
-                with self.assertRaises(Exception):
-                Error.username
 
         def test_invalid(self):
                 scrape('swapnil.negi09')
